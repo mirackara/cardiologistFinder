@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"> </script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.71/jquery.csv-0.71.min.js"></script>
+
+    {% load static %}
+    <script src="{% static "js/jquery.usmap.js" %}"></script>
+        <!-- Basic CSS Styling -->
+    <style>
+        .btn-primary, .btn-primary:visited {
+            background-color: #2a3942 !important;
+            border-color: white;
+            height: 35px;
+        }
+        .btn-primary:hover, .btn-primary:active {
+            background-color: #1f2931 !important;
+            border-color: black
+        }
+        .form-control-small {
+            color: black;
+            border-color: white;
+            height: 35px;
+        }
+        .form-control-small:hover, .form-control-small:active {
+            border-color: black
+        }
+        tr{
+            width:100%;
+        }
+        td{
+            border: 1px solid black;
+        }
+        table{
+            width:100%;
+            border: 1px solid black;
+        }
+    </style>
+
+</head>
+<body>
+    <h1 style="text-align: center; background-color: #5b80b2; color: white;" id="titleID">Cardiologist Finder</h1>
+        <div id="clicked-state" style="text-align: center;"></div>
+    <div id="map" style="width: 600px; height: 400px; margin:auto;"></div>
+    <div id="csvtable" style="width : 600px; margin: 0 auto; "></div>
+</body>
+{% csrf_token %}
+
+<script>
+    function post(dataString){
+        let currLoc = window.location;
+        window.location.replace(currLoc+dataString);
+    }
+
+    $('#map').usmap({
+        // The click action
+        click: function(event, data) {
+            var stateID = data.name;
+            $("#titleID").text("Cardiologist Finder - " + data.name);
+              $.ajax({
+               url:"{% static "Doctors.csv" %}",
+               dataType:"text",
+               success:function(data)
+               {
+                var employee_data = data.split(/\r?\n|\r/);
+                var table_data = '<table class="table table-bordered table-striped">';
+                for(var count = 0; count<employee_data.length; count++) {
+                    var idToCheck = employee_data[count][0]+employee_data[count][1];
+                    if(stateID === idToCheck || idToCheck === "St"){
+                    var cell_data = employee_data[count].split(",");
+                     table_data += '<tr>';
+                     for(var cell_count=0; cell_count<cell_data.length; cell_count++) {
+                      if(count === 0)
+                      {
+                       table_data += '<th>'+cell_data[cell_count]+'</th>';
+                      }
+                      else
+                      {
+                       table_data += '<td>'+cell_data[cell_count]+'</td>';
+                      }
+                     }
+                     table_data += '</tr>';
+                    }
+                }
+                table_data += '</table>';
+                $('#csvtable').html(table_data);
+               }
+              }
+            );
+        }
+    });
+</script>
+<!-- Footer -->
+<footer class="fixed-bottom">
+    <div class="text-left p-3" style="background-color:#5b80b2; height: 50px;">
+    </div>
+</footer>
+</html>
